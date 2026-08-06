@@ -1,0 +1,117 @@
+<app-page-header
+  title="Projects"
+  subtitle="Every engineering project across your workspace."
+>
+  @if (isAdmin()) {
+    <a class="btn btn--primary" routerLink="/projects/new">
+      <app-icon name="plus" [size]="18" /> New project
+    </a>
+  }
+</app-page-header>
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <div class="search">
+    <app-icon name="search" [size]="18" class="search__icon" />
+    <input
+      class="input search__input"
+      type="search"
+      placeholder="Search projects, clients or tags…"
+      [value]="search()"
+      (input)="onSearch($any($event.target).value)"
+    />
+  </div>
+
+  <div class="filters">
+    @for (f of statusFilters; track f.value) {
+      <button
+        class="chip"
+        [class.chip--active]="activeStatus() === f.value"
+        (click)="setStatus(f.value)"
+      >
+        {{ f.label }}
+      </button>
+    }
+    <button
+      class="chip chip--toggle"
+      [class.chip--active]="showArchived()"
+      (click)="toggleArchived()"
+      title="Show archived projects"
+    >
+      <app-icon name="archive" [size]="15" /> Archived
+    </button>
+  </div>
+</div>
+
+@if (loading()) {
+  <div class="loading">
+    <span class="spinner spinner--dark"></span>
+    <span class="muted">Loading projects…</span>
+  </div>
+} @else if (error()) {
+  <div class="card card--pad empty-state">{{ error() }}</div>
+} @else if (filtered().length === 0) {
+  <div class="card card--pad empty-state">
+    <div class="empty-state__icon">📂</div>
+    <p>No projects match your filters.</p>
+    @if (isAdmin() && projects().length === 0 && !showArchived()) {
+      <a class="btn btn--primary" routerLink="/projects/new" style="margin-top: 12px">
+        <app-icon name="plus" [size]="18" /> Create your first project
+      </a>
+    }
+  </div>
+} @else {
+  <div class="pgrid fade-up">
+    @for (p of filtered(); track p.id) {
+      <a class="pcard" [routerLink]="['/projects', p.id]">
+        <div class="pcard__top">
+          <app-badge
+            [label]="statusMeta[p.status].label"
+            [tone]="statusMeta[p.status].tone"
+          />
+          <app-badge
+            [label]="priorityMeta[p.priority].label"
+            [tone]="priorityMeta[p.priority].tone"
+          />
+        </div>
+
+        <h3 class="pcard__name">{{ p.name }}</h3>
+        @if (p.client) {
+          <span class="pcard__client muted">
+            <app-icon name="briefcase" [size]="14" /> {{ p.client }}
+          </span>
+        }
+        <p class="pcard__desc">{{ p.description || 'No description provided.' }}</p>
+
+        @if (p.tags.length) {
+          <div class="pcard__tags">
+            @for (t of p.tags.slice(0, 3); track t) {
+              <span class="tag">{{ t }}</span>
+            }
+            @if (p.tags.length > 3) {
+              <span class="tag">+{{ p.tags.length - 3 }}</span>
+            }
+          </div>
+        }
+
+        <div class="pcard__progress">
+          <div class="pcard__progress-head">
+            <span class="muted">Progress</span>
+            <span class="pcard__progress-val">{{ p.progress }}%</span>
+          </div>
+          <app-progress [value]="p.progress" />
+        </div>
+
+        <div class="pcard__foot">
+          <div class="pcard__stats">
+            <span title="Milestones"><app-icon name="target" [size]="15" /> {{ p.counts?.milestones ?? 0 }}</span>
+            <span title="Reviews"><app-icon name="check" [size]="15" /> {{ p.counts?.reviews ?? 0 }}</span>
+            <span title="Clarifications"><app-icon name="message" [size]="15" /> {{ p.counts?.clarifications ?? 0 }}</span>
+            <span title="Evidence"><app-icon name="file" [size]="15" /> {{ p.counts?.evidence ?? 0 }}</span>
+          </div>
+          <app-avatar-stack [users]="p.members" [size]="28" [max]="4" />
+        </div>
+      </a>
+    }
+  </div>
+}

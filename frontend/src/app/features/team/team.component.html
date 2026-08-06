@@ -1,0 +1,190 @@
+<app-page-header title="Team" subtitle="Manage the people in your engineering workspace.">
+  @if (isAdmin()) {
+    <button class="btn btn--primary" (click)="openModal()">
+      <app-icon name="plus" [size]="18" /> Add member
+    </button>
+  }
+</app-page-header>
+
+@if (notice()) {
+  <div class="notice" (click)="notice.set('')">
+    <app-icon name="check" [size]="16" /> {{ notice() }}
+    <button class="notice__x" type="button">×</button>
+  </div>
+}
+
+@if (isAdmin() && visibility(); as v) {
+  <div class="card card--pad pubcard">
+    <div class="pubcard__text">
+      <h3 class="pubcard__title">Public profile</h3>
+      <p class="pubcard__sub">
+        @if (v.isPublic) {
+          Anyone can find <strong>{{ v.name }}</strong> by name and see its description,
+          project count and member count. Project and member details stay private.
+        } @else {
+          This workspace is private. It does not appear in the public organisation
+          directory and cannot be found by name.
+        }
+      </p>
+      <div class="pubcard__links">
+        @if (v.isPublic) {
+          <a class="pubcard__link" [routerLink]="['/organisations', v.slug]">
+            View public page
+          </a>
+        }
+        <a class="pubcard__link" routerLink="/organisations">Browse the directory</a>
+      </div>
+    </div>
+    <button
+      class="btn"
+      [class.btn--outline]="v.isPublic"
+      [class.btn--primary]="!v.isPublic"
+      (click)="toggleVisibility()"
+      [disabled]="savingVisibility()"
+    >
+      @if (savingVisibility()) { <span class="spinner"></span> }
+      @else if (v.isPublic) { Make private } @else { Publish profile }
+    </button>
+  </div>
+
+  @if (v.isPublic) {
+    <div class="card card--pad pubcard pubcard--tag">
+      <div class="field" style="flex: 1">
+        <label class="field__label" for="tagline">Description shown publicly</label>
+        <input
+          id="tagline"
+          class="input"
+          [(ngModel)]="tagline"
+          maxlength="160"
+          placeholder="Precision engineering for heavy industry"
+        />
+      </div>
+      <button class="btn btn--outline" (click)="saveTagline()" [disabled]="savingVisibility()">
+        Save
+      </button>
+    </div>
+  }
+}
+
+@if (loading()) {
+  <div class="loading"><span class="spinner spinner--dark"></span><span class="muted">Loading team…</span></div>
+} @else if (error()) {
+  <div class="card card--pad empty-state">{{ error() }}</div>
+} @else {
+  <div class="card">
+    <div class="thead">
+      <span class="thead__cell thead__cell--user">Member</span>
+      <span class="thead__cell">Role</span>
+      <span class="thead__cell">Joined</span>
+      @if (isAdmin()) { <span class="thead__cell thead__cell--actions">Actions</span> }
+    </div>
+
+    @for (m of members(); track m.id) {
+      <div class="trow" [class.trow--busy]="busyId() === m.id">
+        <div class="trow__user">
+          <app-avatar [name]="m.name" [color]="m.avatarColor" [size]="38" />
+          <div class="trow__info">
+            <span class="trow__name">
+              {{ m.name }}
+              @if (m.id === currentUserId()) { <span class="you">You</span> }
+            </span>
+            <span class="trow__email muted">{{ m.email }}</span>
+          </div>
+        </div>
+
+        <div class="trow__role">
+          @if (m.status === 'PENDING') {
+            <app-badge label="Invited" tone="warning" />
+          } @else if (isAdmin() && m.id !== currentUserId()) {
+            <select
+              class="select select--sm"
+              [value]="m.role"
+              (change)="changeRole(m, $any($event.target).value)"
+              [disabled]="busyId() === m.id"
+            >
+              <option value="MEMBER">Member</option>
+              <option value="ADMIN">Admin</option>
+            </select>
+          } @else {
+            <app-badge
+              [label]="m.role === 'ADMIN' ? 'Administrator' : 'Member'"
+              [tone]="m.role === 'ADMIN' ? 'primary' : 'neutral'"
+            />
+          }
+        </div>
+
+        <div class="trow__joined muted">
+          @if (m.status === 'PENDING') { Awaiting sign-up } @else { {{ formatDate(m.createdAt) }} }
+        </div>
+
+        @if (isAdmin()) {
+          <div class="trow__actions">
+            @if (m.status !== 'PENDING') {
+              <button
+                class="btn btn--ghost btn--sm"
+                (click)="resetPassword(m)"
+                [disabled]="busyId() === m.id"
+                title="Set a new password"
+              >
+                Reset password
+              </button>
+            }
+            @if (m.id !== currentUserId()) {
+              <button
+                class="btn btn--ghost btn--icon btn--sm"
+                (click)="remove(m)"
+                [disabled]="busyId() === m.id"
+                title="Remove from workspace"
+              >
+                <app-icon name="trash" [size]="16" />
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+}
+
+<!-- Add member modal -->
+@if (modalOpen()) {
+  <app-modal
+    title="Add a member"
+    subtitle="They choose their own password. If they have no account yet, they join automatically when they register with this address."
+    (dismiss)="closeModal()"
+  >
+    @if (formError()) {
+      <div class="form__error" style="margin-bottom: 16px">{{ formError() }}</div>
+    }
+    <form class="mform" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="field">
+        <label class="field__label" for="m-name">Full name</label>
+        <input id="m-name" class="input" formControlName="name" placeholder="Jane Engineer"
+          [class.input--invalid]="invalid('name')" />
+        @if (invalid('name')) { <span class="field__error">Enter a name.</span> }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="m-email">Email</label>
+        <input id="m-email" type="email" class="input" formControlName="email" placeholder="jane@company.com"
+          [class.input--invalid]="invalid('email')" />
+        @if (invalid('email')) { <span class="field__error">Enter a valid email.</span> }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="m-role">Role</label>
+        <select id="m-role" class="select" formControlName="role">
+          <option value="MEMBER">Member</option>
+          <option value="ADMIN">Administrator</option>
+        </select>
+      </div>
+
+      <div class="mform__actions">
+        <button type="button" class="btn btn--outline" (click)="closeModal()" [disabled]="saving()">Cancel</button>
+        <button type="submit" class="btn btn--primary" [disabled]="saving()">
+          @if (saving()) { <span class="spinner"></span> } @else { Add member }
+        </button>
+      </div>
+    </form>
+  </app-modal>
+}

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.angular/
+.env
+.env.*
+!.env.example
+*.log
+prisma/*.db
+coverage/
+.DS_Store
+.vscode/*
+!.vscode/extensions.json

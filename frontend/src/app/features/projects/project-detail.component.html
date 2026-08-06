@@ -1,0 +1,384 @@
+<a class="back" routerLink="/projects">
+  <app-icon name="arrowLeft" [size]="16" /> Back to projects
+</a>
+
+@if (loading()) {
+  <div class="loading">
+    <span class="spinner spinner--dark"></span>
+    <span class="muted">Loading project…</span>
+  </div>
+} @else if (error()) {
+  <div class="card card--pad empty-state">{{ error() }}</div>
+} @else if (project(); as p) {
+  <!-- Header -->
+  <div class="phead card fade-up">
+    <div class="phead__main">
+      <div class="phead__badges">
+        <app-badge [label]="statusMeta[p.status].label" [tone]="statusMeta[p.status].tone" />
+        <app-badge [label]="priorityMeta[p.priority].label" [tone]="priorityMeta[p.priority].tone" />
+        @if (p.archived) {
+          <app-badge label="Archived" tone="neutral" />
+        }
+      </div>
+      <h1 class="phead__name">{{ p.name }}</h1>
+      <p class="phead__desc muted">{{ p.description || 'No description provided.' }}</p>
+      @if (p.tags.length) {
+        <div class="phead__tags">
+          @for (t of p.tags; track t) {
+            <span class="tag">{{ t }}</span>
+          }
+        </div>
+      }
+    </div>
+
+    @if (isAdmin()) {
+      <div class="phead__actions">
+        <button class="btn btn--outline btn--sm" (click)="edit()" [disabled]="busy()">
+          <app-icon name="edit" [size]="16" /> Edit
+        </button>
+        <button class="btn btn--outline btn--sm" (click)="toggleArchive()" [disabled]="busy()">
+          <app-icon name="archive" [size]="16" /> {{ p.archived ? 'Restore' : 'Archive' }}
+        </button>
+        <button class="btn btn--ghost btn--icon btn--sm" (click)="remove()" [disabled]="busy()" title="Delete">
+          <app-icon name="trash" [size]="16" />
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- Quick facts -->
+  <div class="facts fade-up">
+    <div class="fact card">
+      <span class="fact__label">Client</span>
+      <span class="fact__value">{{ p.client || '—' }}</span>
+    </div>
+    <div class="fact card">
+      <span class="fact__label">Project Manager</span>
+      @if (p.manager; as m) {
+        <span class="fact__value fact__value--user">
+          <app-avatar [name]="m.name" [color]="m.avatarColor" [size]="26" /> {{ m.name }}
+        </span>
+      } @else {
+        <span class="fact__value">Unassigned</span>
+      }
+    </div>
+    <div class="fact card">
+      <span class="fact__label">Timeframe</span>
+      <span class="fact__value">{{ timeframe() }}</span>
+    </div>
+    <div class="fact card">
+      <span class="fact__label">Progress</span>
+      <div class="fact__progress">
+        <app-progress [value]="p.progress" [showValue]="true" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    @for (t of tabs; track t.id) {
+      <button class="tab" [class.tab--active]="activeTab() === t.id" (click)="setTab(t.id)">
+        {{ t.label }}
+        @if (t.count && t.count() > 0) {
+          <span class="tab__count">{{ t.count() }}</span>
+        }
+      </button>
+    }
+  </div>
+
+  <!-- Tab content -->
+  <div class="tabpanel fade-up">
+    @switch (activeTab()) {
+      @case ('overview') {
+        <div class="card card--pad">
+          <h3 class="sect-title">Description</h3>
+          <p class="overview-desc">{{ p.description || 'No description provided.' }}</p>
+          <hr class="divider" style="margin: 20px 0" />
+          <div class="overview-grid">
+            <div><span class="muted">Status</span><app-badge [label]="statusMeta[p.status].label" [tone]="statusMeta[p.status].tone" /></div>
+            <div><span class="muted">Priority</span><app-badge [label]="priorityMeta[p.priority].label" [tone]="priorityMeta[p.priority].tone" /></div>
+            <div><span class="muted">Milestones</span><strong>{{ p.counts?.milestones ?? 0 }}</strong></div>
+            <div><span class="muted">Open reviews</span><strong>{{ p.reviews.length }}</strong></div>
+            <div><span class="muted">Created</span><strong>{{ formatDate(p.createdAt) }}</strong></div>
+            <div><span class="muted">Last updated</span><strong>{{ formatDate(p.updatedAt) }}</strong></div>
+          </div>
+        </div>
+      }
+
+      @case ('milestones') {
+        @if (canWrite()) {
+          <div class="tab-actions">
+            <button class="btn btn--primary btn--sm" type="button" (click)="openMilestone()">
+              <app-icon name="plus" [size]="15" /> New milestone
+            </button>
+          </div>
+        }
+        @if (p.milestones.length === 0) {
+          <div class="card card--pad empty-state">
+            <div class="empty-state__icon">🎯</div>No milestones yet.
+          </div>
+        } @else {
+          <div class="rows">
+            @for (m of p.milestones; track m.id) {
+              <div class="row card">
+                <div class="row__lead">
+                  <span class="row__icon" [class]="'tone-' + milestoneMeta[m.status].tone">
+                    <app-icon name="target" [size]="17" />
+                  </span>
+                </div>
+                <div class="row__body">
+                  <div class="row__titleline">
+                    <span class="row__title">{{ m.title }}</span>
+                    <app-badge [label]="milestoneMeta[m.status].label" [tone]="milestoneMeta[m.status].tone" />
+                    <app-badge [label]="priorityMeta[m.priority].label" [tone]="priorityMeta[m.priority].tone" />
+                  </div>
+                  @if (m.description) {
+                    <p class="row__desc muted">{{ m.description }}</p>
+                  }
+                  <div class="row__progress"><app-progress [value]="m.progress" [showValue]="true" /></div>
+                </div>
+                <div class="row__meta">
+                  @if (m.assignee; as a) {
+                    <span class="row__user"><app-avatar [name]="a.name" [color]="a.avatarColor" [size]="24" /> {{ a.name }}</span>
+                  }
+                  <span class="row__date muted"><app-icon name="calendar" [size]="14" /> {{ formatDate(m.dueDate) }}</span>
+                  @if (canWrite()) {
+                    <button class="btn btn--ghost btn--xs" type="button" (click)="openMilestone(m)">Edit</button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+
+      @case ('reviews') {
+        @if (canWrite()) {
+          <div class="tab-actions">
+            <button class="btn btn--primary btn--sm" type="button" (click)="openReview()">
+              <app-icon name="plus" [size]="15" /> New review
+            </button>
+          </div>
+        }
+        @if (p.reviews.length === 0) {
+          <div class="card card--pad empty-state">
+            <div class="empty-state__icon">📝</div>No design reviews recorded.
+          </div>
+        } @else {
+          <div class="rows">
+            @for (r of p.reviews; track r.id) {
+              <div class="row card">
+                <div class="row__body">
+                  <div class="row__titleline">
+                    <span class="row__title">{{ r.title }}</span>
+                    <app-badge [label]="reviewMeta[r.decision].label" [tone]="reviewMeta[r.decision].tone" />
+                  </div>
+                  @if (r.comments) {
+                    <p class="row__desc muted">{{ r.comments }}</p>
+                  }
+                </div>
+                <div class="row__meta">
+                  @if (r.reviewer; as rv) {
+                    <span class="row__user"><app-avatar [name]="rv.name" [color]="rv.avatarColor" [size]="24" /> {{ rv.name }}</span>
+                  }
+                  <span class="row__date muted"><app-icon name="calendar" [size]="14" /> {{ formatDate(r.reviewDate) }}</span>
+                  @if (canWrite()) {
+                    <button class="btn btn--ghost btn--xs" type="button" (click)="openReview(r)">
+                      Record decision
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+
+      @case ('clarifications') {
+        @if (canWrite()) {
+          <div class="tab-actions">
+            <button class="btn btn--primary btn--sm" type="button" (click)="openClarification('raise')">
+              <app-icon name="plus" [size]="15" /> Raise clarification
+            </button>
+          </div>
+        }
+        @if (p.clarifications.length === 0) {
+          <div class="card card--pad empty-state">
+            <div class="empty-state__icon">💬</div>No clarifications raised.
+          </div>
+        } @else {
+          <div class="rows">
+            @for (c of p.clarifications; track c.id) {
+              <div class="row row--stack card">
+                <div class="row__titleline">
+                  <app-icon name="message" [size]="16" class="muted" />
+                  <span class="row__title">{{ c.question }}</span>
+                  <app-badge [label]="clarificationMeta[c.status].label" [tone]="clarificationMeta[c.status].tone" />
+                  <app-badge [label]="priorityMeta[c.priority].label" [tone]="priorityMeta[c.priority].tone" />
+                </div>
+                @if (c.answer) {
+                  <p class="row__answer">{{ c.answer }}</p>
+                } @else {
+                  <p class="row__desc subtle">Awaiting an answer…</p>
+                }
+                <div class="row__foot muted">
+                  @if (c.author) { <span>Asked by {{ c.author.name }}</span> }
+                  @if (c.assignee) { <span>· Assigned to {{ c.assignee.name }}</span> }
+                  <span>· {{ relativeTime(c.createdAt) }}</span>
+                </div>
+
+                <!-- OPEN -> ANSWERED -> CLOSED. Only the permitted next step is offered. -->
+                @if (canWrite()) {
+                  <div class="row__actions">
+                    @switch (c.status) {
+                      @case ('OPEN') {
+                        <button class="btn btn--primary btn--xs" type="button"
+                          (click)="openClarification('answer', c)">Answer</button>
+                      }
+                      @case ('ANSWERED') {
+                        <button class="btn btn--ghost btn--xs" type="button" [disabled]="busy()"
+                          (click)="closeClarificationRecord(c)">Close</button>
+                      }
+                      @case ('CLOSED') {
+                        <span class="row__closed muted">Closed — no further action</span>
+                      }
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      }
+
+      @case ('evidence') {
+        @if (canWrite()) {
+          <div class="tab-actions">
+            <button class="btn btn--primary btn--sm" type="button" (click)="openEvidence()">
+              <app-icon name="plus" [size]="15" /> Attach evidence
+            </button>
+          </div>
+        }
+        @if (p.evidence.length === 0) {
+          <div class="card card--pad empty-state">
+            <div class="empty-state__icon">📁</div>No evidence attached.
+          </div>
+        } @else {
+          <div class="egrid">
+            @for (e of p.evidence; track e.id) {
+              <div class="ecard card">
+                <div class="ecard__icon">{{ evidenceMeta[e.type].icon }}</div>
+                <div class="ecard__body">
+                  <span class="ecard__title">{{ e.title }}</span>
+                  <span class="ecard__type muted">{{ evidenceMeta[e.type].label }}</span>
+                  @if (e.description) {
+                    <p class="ecard__desc muted">{{ e.description }}</p>
+                  }
+                  <div class="ecard__foot">
+                    @if (e.uploader) {
+                      <span class="row__user"><app-avatar [name]="e.uploader.name" [color]="e.uploader.avatarColor" [size]="20" /> {{ e.uploader.name }}</span>
+                    }
+                    @if (e.url) {
+                      <a class="ecard__link" [href]="e.url" target="_blank" rel="noopener">
+                        Open <app-icon name="external" [size]="13" />
+                      </a>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+
+      @case ('members') {
+        <div class="card card--pad">
+          <h3 class="sect-title">Project Manager</h3>
+          @if (p.manager; as m) {
+            <div class="member">
+              <app-avatar [name]="m.name" [color]="m.avatarColor" [size]="38" />
+              <div class="member__info"><span class="member__name">{{ m.name }}</span><span class="member__email muted">{{ m.email }}</span></div>
+              <app-badge label="Manager" tone="primary" />
+            </div>
+          } @else {
+            <p class="muted">No manager assigned.</p>
+          }
+          <hr class="divider" style="margin: 18px 0" />
+          <h3 class="sect-title">Team Members ({{ p.members.length }})</h3>
+          @if (p.members.length === 0) {
+            <p class="muted">No members assigned.</p>
+          } @else {
+            <div class="members">
+              @for (mem of p.members; track mem.id) {
+                <div class="member">
+                  <app-avatar [name]="mem.name" [color]="mem.avatarColor" [size]="38" />
+                  <div class="member__info"><span class="member__name">{{ mem.name }}</span><span class="member__email muted">{{ mem.email }}</span></div>
+                  <app-badge [label]="mem.role === 'ADMIN' ? 'Admin' : 'Member'" tone="neutral" />
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      @case ('activity') {
+        @if (p.activity.length === 0) {
+          <div class="card card--pad empty-state">No activity recorded.</div>
+        } @else {
+          <div class="card card--pad">
+            <ul class="timeline">
+              @for (a of p.activity; track a.id) {
+                <li class="tl">
+                  <span class="tl__dot"></span>
+                  <div class="tl__body">
+                    <span class="tl__text"><strong>{{ a.user?.name ?? 'Someone' }}</strong> {{ activityLabel(a.action) }}</span>
+                    <span class="tl__time subtle">{{ relativeTime(a.createdAt) }}</span>
+                  </div>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      }
+    }
+  </div>
+}
+
+@if (project(); as p) {
+  @if (milestoneDialog().open) {
+    <app-milestone-dialog
+      [projectId]="p.id"
+      [milestone]="milestoneDialog().target"
+      (close)="closeMilestone()"
+      (saved)="onMilestoneSaved($event)"
+    />
+  }
+
+  @if (reviewDialog().open) {
+    <app-review-dialog
+      [projectId]="p.id"
+      [review]="reviewDialog().target"
+      (close)="closeReview()"
+      (saved)="onReviewSaved($event)"
+    />
+  }
+
+  @if (clarificationDialog().open) {
+    <app-clarification-dialog
+      [projectId]="p.id"
+      [mode]="clarificationDialog().mode"
+      [clarification]="clarificationDialog().target"
+      (close)="closeClarification()"
+      (saved)="onClarificationSaved($event)"
+    />
+  }
+
+  @if (evidenceDialog().open) {
+    <app-evidence-dialog
+      [projectId]="p.id"
+      [evidence]="evidenceDialog().target"
+      (close)="closeEvidence()"
+      (saved)="onEvidenceSaved($event)"
+    />
+  }
+}

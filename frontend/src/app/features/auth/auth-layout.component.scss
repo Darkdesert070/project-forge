@@ -1,0 +1,121 @@
+.auth {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+}
+
+/* ---------- Brand panel ---------- */
+.auth__brand {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at 20% 20%, #35358f 0%, #1a1a3d 45%, #111127 100%);
+  color: #fff;
+  padding: 46px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.auth__logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  font-size: 14px;
+}
+.auth__pitch {
+  position: relative;
+  z-index: 2;
+  max-width: 460px;
+}
+.auth__pitch h1 {
+  font-size: 34px;
+  font-weight: 750;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+}
+.auth__pitch p {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 26px;
+}
+.auth__features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.auth__features li {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.88);
+}
+.auth__features span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(122, 122, 255, 0.25);
+  color: #c9c8ff;
+  font-size: 12px;
+  font-weight: 700;
+}
+.auth__brand-foot {
+  position: relative;
+  z-index: 2;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.5);
+}
+.auth__glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.5;
+}
+.auth__glow--1 {
+  width: 320px;
+  height: 320px;
+  background: #5b5bf0;
+  top: -60px;
+  right: -80px;
+}
+.auth__glow--2 {
+  width: 260px;
+  height: 260px;
+  background: #7c3aed;
+  bottom: -60px;
+  left: 30%;
+  opacity: 0.3;
+}
+
+/* ---------- Form panel ---------- */
+.auth__panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: var(--surface);
+}
+.auth__card {
+  width: 100%;
+  max-width: 380px;
+  animation: fadeUp 0.4s ease both;
+}
+
+@media (max-width: 860px) {
+  .auth {
+    grid-template-columns: 1fr;
+  }
+  .auth__brand {
+    display: none;
+  }
+  .auth__panel {
+    background: var(--bg);
+  }
+}

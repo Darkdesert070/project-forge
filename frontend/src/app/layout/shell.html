@@ -1,0 +1,103 @@
+<div class="shell" [class.shell--nav-open]="sidebarOpen()">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand__mark">
+        <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
+          <path d="M9 22V10l7 6 7-6v12" stroke="white" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="brand__text">
+        <span class="brand__name">FORGE</span>
+        <span class="brand__sub">Engineering PM</span>
+      </span>
+    </div>
+
+    <nav class="nav">
+      <span class="nav__section">Workspace</span>
+      @for (item of nav; track item.path) {
+        <a
+          class="nav__link"
+          [routerLink]="item.path"
+          routerLinkActive="nav__link--active"
+          (click)="closeSidebar()"
+        >
+          <app-icon [name]="item.icon" [size]="18" />
+          <span>{{ item.label }}</span>
+        </a>
+      }
+
+      <span class="nav__section nav__section--spaced">Coming soon</span>
+      @for (item of comingSoon; track item.label) {
+        <span class="nav__link nav__link--disabled">
+          <app-icon [name]="item.icon" [size]="18" />
+          <span>{{ item.label }}</span>
+          <span class="nav__soon">soon</span>
+        </span>
+      }
+    </nav>
+
+    @if (user(); as u) {
+      <div class="sidebar__user">
+        <app-avatar [name]="u.name" [color]="u.avatarColor" [size]="36" />
+        <div class="sidebar__user-info">
+          <span class="sidebar__user-name">{{ u.name }}</span>
+          <span class="sidebar__user-role">{{ u.role === 'ADMIN' ? 'Administrator' : 'Member' }}</span>
+        </div>
+        <button class="icon-btn" (click)="logout()" title="Sign out">
+          <app-icon name="logout" [size]="18" />
+        </button>
+      </div>
+    }
+  </aside>
+
+  <!-- Backdrop for mobile -->
+  <div class="backdrop" (click)="closeSidebar()"></div>
+
+  <!-- Main -->
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn topbar__burger" (click)="toggleSidebar()" title="Menu">
+        <app-icon name="dots" [size]="20" />
+      </button>
+      <div class="topbar__greeting">
+        <span class="topbar__hello">{{ greeting() }}</span>
+        @if (user()?.workspaceName; as ws) {
+          <span class="topbar__ws">{{ ws }}</span>
+        }
+      </div>
+
+      <div class="topbar__right">
+        <button class="icon-btn topbar__bell" title="Notifications">
+          <app-icon name="bell" [size]="19" />
+          <span class="topbar__dot"></span>
+        </button>
+
+        @if (user(); as u) {
+          <div class="usermenu">
+            <button class="usermenu__trigger" (click)="toggleMenu()">
+              <app-avatar [name]="u.name" [color]="u.avatarColor" [size]="34" />
+              <app-icon name="chevronDown" [size]="16" />
+            </button>
+            @if (menuOpen()) {
+              <div class="usermenu__panel">
+                <div class="usermenu__head">
+                  <span class="usermenu__name">{{ u.name }}</span>
+                  <span class="usermenu__email">{{ u.email }}</span>
+                </div>
+                <button class="usermenu__item" (click)="logout()">
+                  <app-icon name="logout" [size]="16" />
+                  Sign out
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </header>
+
+    <main class="content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

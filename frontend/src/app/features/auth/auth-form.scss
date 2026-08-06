@@ -1,0 +1,77 @@
+.form__head {
+  margin-bottom: 26px;
+}
+.form__title {
+  font-size: 24px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+.form__sub {
+  color: var(--text-muted);
+  margin-top: 6px;
+  font-size: 14px;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.form__error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid rgba(224, 72, 61, 0.25);
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.form__footer {
+  margin-top: 22px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.form__footer a {
+  color: var(--primary-600);
+  font-weight: 650;
+}
+.form__footer a:hover {
+  text-decoration: underline;
+}
+.demo {
+  margin-top: 18px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  border: 1px dashed var(--border-strong);
+  font-size: 12.5px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.demo code {
+  color: var(--text);
+  font-weight: 600;
+}
+.demo button {
+  border: none;
+  background: transparent;
+  color: var(--primary-600);
+  font-weight: 650;
+  font-size: 12.5px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.demo button:hover {
+  text-decoration: underline;
+}
+
+.auth-sep {
+  margin: 0 8px;
+  color: #c2ccd6;
+}

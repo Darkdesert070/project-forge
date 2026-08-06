@@ -1,0 +1,144 @@
+<a class="back" [routerLink]="isEdit() ? ['/projects', projectId()] : ['/projects']">
+  <app-icon name="arrowLeft" [size]="16" /> {{ isEdit() ? 'Back to project' : 'Back to projects' }}
+</a>
+
+<div class="form-head">
+  <h1>{{ isEdit() ? 'Edit project' : 'New project' }}</h1>
+  <p class="muted">
+    {{ isEdit() ? 'Update the details of this engineering project.' : 'Set up a new engineering project for your workspace.' }}
+  </p>
+</div>
+
+@if (loading()) {
+  <div class="loading"><span class="spinner spinner--dark"></span></div>
+} @else {
+  @if (error()) {
+    <div class="form__error banner">{{ error() }}</div>
+  }
+
+  <form class="layout" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="layout__main">
+      <div class="card card--pad">
+        <h3 class="sect-title">Project details</h3>
+
+        <div class="field" style="margin-bottom: 16px">
+          <label class="field__label" for="name">Project name *</label>
+          <input id="name" class="input" formControlName="name" placeholder="e.g. Turbine Blade Redesign"
+            [class.input--invalid]="invalid('name')" />
+          @if (invalid('name')) { <span class="field__error">A project name is required.</span> }
+        </div>
+
+        <div class="field" style="margin-bottom: 16px">
+          <label class="field__label" for="client">Client</label>
+          <input id="client" class="input" formControlName="client" placeholder="e.g. Aurora Power Systems" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="description">Description</label>
+          <textarea id="description" class="textarea" formControlName="description"
+            placeholder="What is this project about?"></textarea>
+        </div>
+      </div>
+
+      <div class="card card--pad">
+        <h3 class="sect-title">Tags</h3>
+        <div class="tags-input">
+          @for (t of tags(); track t) {
+            <span class="tag tag--removable">
+              {{ t }}
+              <button type="button" (click)="removeTag(t)" aria-label="Remove tag">×</button>
+            </span>
+          }
+          <input
+            class="tags-input__field"
+            [value]="tagDraft()"
+            (input)="tagDraft.set($any($event.target).value)"
+            (keydown)="onTagKey($event)"
+            (blur)="addTag()"
+            placeholder="Add a tag and press Enter"
+          />
+        </div>
+      </div>
+
+      <div class="card card--pad">
+        <h3 class="sect-title">Team members</h3>
+        @if (users().length === 0) {
+          <p class="muted">No workspace members found.</p>
+        } @else {
+          <div class="members-pick">
+            @for (u of users(); track u.id) {
+              <button type="button" class="pick" [class.pick--on]="isMember(u.id)" (click)="toggleMember(u.id)">
+                <app-avatar [name]="u.name" [color]="u.avatarColor" [size]="30" />
+                <div class="pick__info">
+                  <span class="pick__name">{{ u.name }}</span>
+                  <span class="pick__email muted">{{ u.email }}</span>
+                </div>
+                <span class="pick__check">
+                  @if (isMember(u.id)) { <app-icon name="check" [size]="15" /> }
+                </span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <aside class="layout__side">
+      <div class="card card--pad">
+        <h3 class="sect-title">Settings</h3>
+
+        <div class="field" style="margin-bottom: 16px">
+          <label class="field__label" for="status">Status</label>
+          <select id="status" class="select" formControlName="status">
+            @for (o of statusOptions; track o.value) {
+              <option [value]="o.value">{{ o.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="field" style="margin-bottom: 16px">
+          <label class="field__label" for="priority">Priority</label>
+          <select id="priority" class="select" formControlName="priority">
+            @for (o of priorityOptions; track o.value) {
+              <option [value]="o.value">{{ o.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="field" style="margin-bottom: 16px">
+          <label class="field__label" for="managerId">Project manager</label>
+          <select id="managerId" class="select" formControlName="managerId">
+            <option value="">Unassigned</option>
+            @for (u of users(); track u.id) {
+              <option [value]="u.id">{{ u.name }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label class="field__label" for="startDate">Start date</label>
+            <input id="startDate" type="date" class="input" formControlName="startDate" />
+          </div>
+          <div class="field">
+            <label class="field__label" for="endDate">End date</label>
+            <input id="endDate" type="date" class="input" formControlName="endDate" />
+          </div>
+        </div>
+
+        <div class="field" style="margin-top: 16px">
+          <label class="field__label" for="progress">Manual progress ({{ form.controls.progress.value }}%)</label>
+          <input id="progress" type="range" min="0" max="100" step="5" formControlName="progress" class="range" />
+          <span class="field__hint">Used only when the project has no milestones.</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn btn--outline btn--block" (click)="cancel()" [disabled]="saving()">Cancel</button>
+        <button type="submit" class="btn btn--primary btn--block" [disabled]="saving()">
+          @if (saving()) { <span class="spinner"></span> } @else { {{ isEdit() ? 'Save changes' : 'Create project' }} }
+        </button>
+      </div>
+    </aside>
+  </form>
+}
