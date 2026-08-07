@@ -33,6 +33,12 @@ const ICONS: Record<string, string> = {
   activity: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
   target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
   briefcase: '<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  checkCircle: '<circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/>',
+  alertCircle: '<circle cx="12" cy="12" r="9"/><path d="M12 7v6"/><path d="M12 16.5v.01"/>',
+  alertTriangle:
+    '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17v.01"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 16v-5"/><path d="M12 7.5v.01"/>',
 };
 
 @Component({
