@@ -4,9 +4,11 @@
 
 generator client {
   provider      = "prisma-client-js"
-  // "native" covers local development; the Debian target is what the
-  // container image runs on, so both are generated at build time.
-  binaryTargets = ["native", "debian-openssl-3.0.x"]
+  // "native" covers local development. The container image is Alpine, which
+  // links against musl rather than glibc, so the musl engine is the one that
+  // must exist inside the image. Getting this wrong makes Prisma try to
+  // download an engine at runtime, which fails under a non-root user.
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
