@@ -6,7 +6,7 @@ const app = createApp();
 
 // 0.0.0.0 rather than localhost: inside a container the process must accept
 // connections from outside it, not only from the container's own loopback.
-const server = app.listen(env.port, '0.0.0.0', () => {
+const server = app.listen(env.port, '::', () => {
   // eslint-disable-next-line no-console
   console.log(`Project FORGE API listening on port ${env.port}`);
 });
