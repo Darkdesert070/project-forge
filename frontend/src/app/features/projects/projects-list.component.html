@@ -44,9 +44,26 @@
 </div>
 
 @if (loading()) {
-  <div class="loading">
-    <span class="spinner spinner--dark"></span>
-    <span class="muted">Loading projects…</span>
+  <div class="pgrid" aria-busy="true">
+    <span class="sr-only">Loading projects…</span>
+    @for (card of skeletonCards; track card) {
+      <div class="pcard" aria-hidden="true">
+        <div class="pcard__top">
+          <span class="skeleton skeleton--badge"></span>
+          <span class="skeleton skeleton--badge" style="width: 58px"></span>
+        </div>
+        <span class="skeleton skeleton--title" style="width: 68%; margin: 14px 0 10px"></span>
+        <div class="skeleton-stack">
+          <span class="skeleton skeleton--text skeleton--line-lg"></span>
+          <span class="skeleton skeleton--text skeleton--line-md"></span>
+        </div>
+        <div class="skeleton-row" style="margin-top: 14px">
+          <span class="skeleton" style="width: 52px; height: 20px; border-radius: 6px"></span>
+          <span class="skeleton" style="width: 44px; height: 20px; border-radius: 6px"></span>
+        </div>
+        <span class="skeleton" style="height: 8px; border-radius: 999px; margin-top: 18px"></span>
+      </div>
+    }
   </div>
 } @else if (error()) {
   <div class="card card--pad empty-state">{{ error() }}</div>

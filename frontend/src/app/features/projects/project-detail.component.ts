@@ -58,6 +58,9 @@ export class ProjectDetailComponent {
   readonly isAdmin = this.auth.isAdmin;
   readonly project = signal<ProjectDetail | null>(null);
   readonly loading = signal(true);
+
+  /** Placeholder rows rendered while the project loads. */
+  readonly skeletonRows = [0, 1, 2, 3];
   readonly error = signal('');
   readonly busy = signal(false);
   readonly activeTab = signal<Tab>('overview');

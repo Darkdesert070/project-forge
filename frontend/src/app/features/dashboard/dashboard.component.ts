@@ -56,6 +56,9 @@ export class DashboardComponent {
   readonly isAdmin = this.auth.isAdmin;
   readonly data = signal<DashboardData | null>(null);
   readonly loading = signal(true);
+
+  /** Placeholder tiles rendered while the dashboard loads. */
+  readonly skeletonStats = [0, 1, 2, 3, 4, 5];
   readonly error = signal('');
 
   readonly formatDate = formatDate;

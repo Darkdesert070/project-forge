@@ -39,6 +39,9 @@ export class ProjectsListComponent {
 
   readonly projects = signal<Project[]>([]);
   readonly loading = signal(true);
+
+  /** Placeholder cards rendered while the list loads. */
+  readonly skeletonCards = [0, 1, 2, 3, 4, 5];
   readonly error = signal('');
 
   readonly search = signal('');

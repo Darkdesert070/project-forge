@@ -6,13 +6,6 @@
   }
 </app-page-header>
 
-@if (notice()) {
-  <div class="notice" (click)="notice.set('')">
-    <app-icon name="check" [size]="16" /> {{ notice() }}
-    <button class="notice__x" type="button">×</button>
-  </div>
-}
-
 @if (isAdmin() && visibility(); as v) {
   <div class="card card--pad pubcard">
     <div class="pubcard__text">
@@ -67,7 +60,35 @@
 }
 
 @if (loading()) {
-  <div class="loading"><span class="spinner spinner--dark"></span><span class="muted">Loading team…</span></div>
+  <div class="card" aria-busy="true">
+    <span class="sr-only">Loading team…</span>
+    <div class="thead" aria-hidden="true">
+      <span class="thead__cell thead__cell--user">Member</span>
+      <span class="thead__cell">Role</span>
+      <span class="thead__cell">Joined</span>
+      @if (isAdmin()) { <span class="thead__cell thead__cell--actions">Actions</span> }
+    </div>
+    @for (row of skeletonRows; track row) {
+      <div class="trow" aria-hidden="true">
+        <div class="trow__user">
+          <span class="skeleton skeleton--avatar" style="width: 38px; height: 38px"></span>
+          <div class="skeleton-stack" style="flex: 1; max-width: 220px">
+            <span class="skeleton skeleton--text skeleton--line-md"></span>
+            <span class="skeleton skeleton--text skeleton--line-sm"></span>
+          </div>
+        </div>
+        <div class="trow__role"><span class="skeleton skeleton--badge"></span></div>
+        <div class="trow__joined">
+          <span class="skeleton skeleton--text" style="width: 84px"></span>
+        </div>
+        @if (isAdmin()) {
+          <div class="trow__actions">
+            <span class="skeleton skeleton--text" style="width: 62px; height: 28px"></span>
+          </div>
+        }
+      </div>
+    }
+  </div>
 } @else if (error()) {
   <div class="card card--pad empty-state">{{ error() }}</div>
 } @else {

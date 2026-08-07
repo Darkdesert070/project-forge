@@ -5,6 +5,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { UsersService } from '../../core/api/users.service';
 import { DirectoryService, type OwnVisibility } from '../../core/api/directory.service';
 import { AuthService } from '../../core/auth/auth.service';
+import { ToastService } from '../../core/toast';
 import type { Member, Role } from '../../core/models';
 import { formatDate } from '../../core/ui';
 import { PageHeaderComponent } from '../../shared/page-header.component';
@@ -33,6 +34,7 @@ export class TeamComponent {
   private readonly usersService = inject(UsersService);
   private readonly directoryService = inject(DirectoryService);
   private readonly auth = inject(AuthService);
+  private readonly toast = inject(ToastService);
 
   readonly isAdmin = this.auth.isAdmin;
   readonly currentUserId = computed(() => this.auth.user()?.id ?? '');
@@ -41,7 +43,9 @@ export class TeamComponent {
   readonly members = signal<Member[]>([]);
   readonly loading = signal(true);
   readonly error = signal('');
-  readonly notice = signal('');
+
+  /** Placeholder rows rendered while the roster loads. */
+  readonly skeletonRows = [0, 1, 2, 3, 4];
 
   readonly modalOpen = signal(false);
   readonly saving = signal(false);
@@ -101,10 +105,14 @@ export class TeamComponent {
       next: (v) => {
         this.visibility.set(v);
         this.savingVisibility.set(false);
-        this.notice.set(v.isPublic ? 'Public profile published.' : 'Public profile removed.');
+        this.toast.success(
+          v.isPublic
+            ? 'Public profile published.'
+            : 'Public profile removed.',
+        );
       },
       error: (err: HttpErrorResponse) => {
-        this.notice.set(err.error?.error ?? 'Could not update visibility.');
+        this.toast.fromHttp(err, 'Could not update visibility.');
         this.savingVisibility.set(false);
       },
     });
@@ -116,10 +124,10 @@ export class TeamComponent {
       next: (v) => {
         this.visibility.set(v);
         this.savingVisibility.set(false);
-        this.notice.set('Description updated.');
+        this.toast.success('Description updated.');
       },
       error: (err: HttpErrorResponse) => {
-        this.notice.set(err.error?.error ?? 'Could not save the description.');
+        this.toast.fromHttp(err, 'Could not save the description.');
         this.savingVisibility.set(false);
       },
     });
@@ -167,7 +175,7 @@ export class TeamComponent {
         this.members.update((list) => [member, ...list]);
         this.saving.set(false);
         this.modalOpen.set(false);
-        this.notice.set(`${member.name} was added — they can sign in with ${member.email}.`);
+        this.toast.success(`${member.name} was added`, `They can sign in with ${member.email}.`);
       },
       error: (err: HttpErrorResponse) => {
         this.formError.set(err.error?.error ?? 'Could not add the member.');
@@ -183,9 +191,10 @@ export class TeamComponent {
       next: (updated) => {
         this.members.update((list) => list.map((m) => (m.id === updated.id ? updated : m)));
         this.busyId.set(null);
+        this.toast.success(`${updated.name} is now ${role === 'ADMIN' ? 'an admin' : 'a member'}.`);
       },
       error: (err: HttpErrorResponse) => {
-        this.notice.set(err.error?.error ?? 'Could not change role.');
+        this.toast.fromHttp(err, 'Could not change role.');
         this.busyId.set(null);
         this.load();
       },
@@ -196,18 +205,18 @@ export class TeamComponent {
     const pw = window.prompt(`Set a new password for ${member.name} (min 8 characters):`);
     if (!pw) return;
     if (pw.length < 8) {
-      this.notice.set('Password must be at least 8 characters.');
+      this.toast.warning('Password must be at least 8 characters.');
       return;
     }
     this.busyId.set(member.id);
     this.usersService.resetPassword(member.id, pw).subscribe({
       next: () => {
         this.busyId.set(null);
-        this.notice.set(`Password updated for ${member.name}.`);
+        this.toast.success(`Password updated for ${member.name}.`);
       },
       error: (err: HttpErrorResponse) => {
         this.busyId.set(null);
-        this.notice.set(err.error?.error ?? 'Could not reset password.');
+        this.toast.fromHttp(err, 'Could not reset password.');
       },
     });
   }
@@ -227,9 +236,12 @@ export class TeamComponent {
       next: () => {
         this.members.update((list) => list.filter((m) => m.id !== member.id));
         this.busyId.set(null);
+        this.toast.success(
+          pending ? `Invitation for ${member.email} withdrawn.` : `${member.name} was removed.`,
+        );
       },
       error: (err: HttpErrorResponse) => {
-        this.notice.set(err.error?.error ?? 'Could not remove the member.');
+        this.toast.fromHttp(err, 'Could not remove the member.');
         this.busyId.set(null);
       },
     });

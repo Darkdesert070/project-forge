@@ -3,9 +3,33 @@
 </a>
 
 @if (loading()) {
-  <div class="loading">
-    <span class="spinner spinner--dark"></span>
-    <span class="muted">Loading project…</span>
+  <div aria-busy="true">
+    <span class="sr-only">Loading project…</span>
+    <div class="phead card" aria-hidden="true">
+      <div class="phead__main">
+        <div class="phead__badges">
+          <span class="skeleton skeleton--badge"></span>
+          <span class="skeleton skeleton--badge" style="width: 58px"></span>
+        </div>
+        <span class="skeleton skeleton--title" style="width: 46%; height: 26px; margin: 14px 0 12px"></span>
+        <div class="skeleton-stack">
+          <span class="skeleton skeleton--text skeleton--line-lg"></span>
+          <span class="skeleton skeleton--text skeleton--line-md"></span>
+        </div>
+      </div>
+    </div>
+    <div class="card card--pad" style="margin-top: 18px" aria-hidden="true">
+      <span class="skeleton skeleton--title" style="width: 28%"></span>
+      <div class="skeleton-stack" style="margin-top: 18px">
+        @for (row of skeletonRows; track row) {
+          <div class="skeleton-row">
+            <span class="skeleton skeleton--avatar"></span>
+            <span class="skeleton skeleton--text" style="flex: 1"></span>
+            <span class="skeleton skeleton--badge"></span>
+          </div>
+        }
+      </div>
+    </div>
   </div>
 } @else if (error()) {
   <div class="card card--pad empty-state">{{ error() }}</div>

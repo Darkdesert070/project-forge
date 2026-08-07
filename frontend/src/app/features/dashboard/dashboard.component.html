@@ -7,9 +7,45 @@
 </app-page-header>
 
 @if (loading()) {
-  <div class="loading">
-    <span class="spinner spinner--dark"></span>
-    <span class="muted">Loading dashboard…</span>
+  <div aria-busy="true">
+    <span class="sr-only">Loading dashboard…</span>
+    <section class="stats" aria-hidden="true">
+      @for (stat of skeletonStats; track stat) {
+        <div class="card card--pad">
+          <div class="skeleton-row">
+            <span class="skeleton skeleton--circle" style="width: 42px; height: 42px"></span>
+            <div class="skeleton-stack" style="flex: 1">
+              <span class="skeleton skeleton--text" style="width: 46px; height: 20px"></span>
+              <span class="skeleton skeleton--text skeleton--line-md"></span>
+            </div>
+          </div>
+        </div>
+      }
+    </section>
+    <div class="grid" aria-hidden="true">
+      <div class="col">
+        <div class="card card--pad">
+          <span class="skeleton skeleton--title" style="width: 32%"></span>
+          <span class="skeleton skeleton--block" style="height: 210px; margin-top: 18px"></span>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card card--pad">
+          <span class="skeleton skeleton--title" style="width: 44%"></span>
+          <div class="skeleton-stack" style="margin-top: 18px">
+            @for (row of skeletonStats; track row) {
+              <div class="skeleton-row">
+                <span class="skeleton skeleton--avatar"></span>
+                <div class="skeleton-stack" style="flex: 1">
+                  <span class="skeleton skeleton--text skeleton--line-md"></span>
+                  <span class="skeleton skeleton--text skeleton--line-sm"></span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 } @else if (error()) {
   <div class="card card--pad empty-state">{{ error() }}</div>
