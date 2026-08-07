@@ -41,5 +41,7 @@ export async function assertWorkspaceUser(
   if (!found) {
     throw new HttpError(400, 'Selected user is not a member of this workspace');
   }
-  return found.id;
+  // The membership row carries userId, not id: callers want the user, not the
+  // membership record.
+  return found.userId;
 }
